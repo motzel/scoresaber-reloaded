@@ -1,69 +1,90 @@
 <script>
-import {exportJsonData} from './utils/export-import'
+  import {setContext} from 'svelte'
+  import {Router, Route, navigate} from "svelte-routing";
+  import buildInfo from '../build-info';
+  import createContainerStore from './stores/container';
+  import HomePage from './pages/Home.svelte';
+  import SearchPage from './pages/Search.svelte';
+  import RankingPage from './pages/Ranking.svelte';
+  import LeaderboardPage from './pages/Leaderboard.svelte';
+  import FriendsPage from './pages/Friends.svelte';
+  import PlayerPage from './pages/Player.svelte';
+  import TwitchPage from './pages/Twitch.svelte';
+  import NotFoundPage from './pages/NotFound.svelte';
+  import PrivacyPage from './pages/Privacy.svelte';
+  import CreditsPage from './pages/Credits.svelte';
+  import Nav from './components/Nav.svelte';
+
+  export let url = "";
+
+  let mainEl = null;
+
+  const containerStore = createContainerStore();
+
+  setContext('pageContainer', containerStore);
+
+  $: if (mainEl) containerStore.observe(mainEl)
 </script>
 
-<main>
-  <article>
-    <header>
-    <h1 class="title is-5">Site closed at Umbranox's request.</h1>
-    <p><a href="https://scoresaber.com" rel="noreferrer">Go to scoresaber.com</a></p>
-    </header>
+<Router {url}>
+  <Nav />
 
-    <p>...and don't forget about the other great sites that will supplement your data.</p>
+  <main bind:this={mainEl}>
+    <div class="ssr-page-container">
+      <Route path="/u/:initialPlayerId/*initialParams" let:params>
+        <PlayerPage initialPlayerId={params.initialPlayerId} initialParams={params.initialParams}/>
+      </Route>
+      <Route path="/privacy" component="{PrivacyPage}" />
+      <Route path="/credits" component="{CreditsPage}" />
+      <Route path="/friends" component="{FriendsPage}" />
+      <Route path="/ranking/:type/*page" let:params>
+        <RankingPage type={params.type} page={params.page} />
+      </Route>
+      <Route path="/leaderboard/:type/:leaderboardId/*page" let:params>
+        <LeaderboardPage leaderboardId={params.leaderboardId} type={params.type} page={params.page} />
+      </Route>
+      <Route path="/search" component="{SearchPage}" />
+      <Route path="/twitch" component="{TwitchPage}" />
+      <Route path="/" component="{HomePage}" />
+      <Route path="/*" component="{NotFoundPage}" />
+    </div>
+  </main>
+</Router>
 
-    <p>
-      <a href="https://www.beatsavior.io/" rel="noreferrer">Beat Savior</a>
-      <small>detailed data on your swings, install <a href="https://github.com/Mystogan98/BeatSaviorData" rel="noreferrer">BS mod</a> first</small>
-    </p>
-
-    <p>
-      <a href="https://www.accsaber.com/" rel="noreferrer">AccSaber</a>
-      <small>if you want to become an ACC champ</small>
-    </p>
-
-    <footer>
-      If for some reason you would like to download your data stored in SSR,
-      <a href="#" on:click|preventDefault={() => exportJsonData()}>click here</a>
-      (and wait a few seconds).
-
-      <p>
-        <strong>May the 115 be with you!</strong>
-      </p>
-    </footer>
-  </article>
-</main>
-
+<footer>
+  <p>ScoreSaber Reloaded by <a href="https://github.com/motzel">motzel</a></p>
+  <p class="build">Build: {buildInfo.buildVersion} ({buildInfo.buildDate})</p>
+  <p>
+    <a href="/privacy" on:click|preventDefault={() => navigate('/privacy')}>Privacy policy</a> |
+    <a href="/credits" on:click|preventDefault={() => navigate('/credits')}>Credits</a>
+  </p>
+</footer>
 
 <style>
     main {
-        display: flex;
-        width: 100%;
-        height: 100vh;
-        justify-content: center;
-        align-items: center;
+        margin-top: 1em;
     }
 
-    article > * {
-        text-align: center;
+    .ssr-page-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        overflow: hidden;
+        min-height: calc(100vh - 9rem);
     }
 
-    header {
-        margin-bottom: 4rem;
+    .ssr-page-container :global(> *) {
+        grid-area: 1 / 1 / 1 / 1;
     }
 
-    p {
-        margin-bottom: .75rem;
-    }
-
-    small {
-        display: block;
-        font-size: .75rem;
-        color: #aaa;
+    .build {
+        font-size: .875em;
+        color: var(--faded);
     }
 
     footer {
-        margin-top: 6rem;
-        font-size: .875em;
-        color: #aaa;
+        margin: 1rem 0;
+        font-size: .75em;
+        text-align: center;
     }
 </style>
