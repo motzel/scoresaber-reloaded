@@ -14,6 +14,7 @@
   import PrivacyPage from './pages/Privacy.svelte';
   import CreditsPage from './pages/Credits.svelte';
   import Nav from './components/Nav.svelte';
+  import DeprecationModal from './components/Common/DeprecationModal.svelte'
 
   export let url = "";
 
@@ -28,6 +29,8 @@
 
 <Router {url}>
   <Nav />
+
+  <DeprecationModal />
 
   <main bind:this={mainEl}>
     <div class="ssr-page-container">
